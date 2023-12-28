@@ -20,6 +20,15 @@ router.get(
   "/joined-community/:id",
   communityController.getJoinedCommunityByProfileId
 );
+router.get("/get-link/:id", communityController.getLink);
+router.post(
+  "/create-advertizement-link",
+  communityController.CreateAdvertizementLink
+);
+router.post(
+  "/edit-advertizement-link",
+  communityController.editAdvertizeMentLink
+);
 router.get("/status/:id", communityController.approveCommunity);
 router.get("/change-user-type/:id", communityController.changeAccountType);
 router.get("/files/:folder/:id", utilsController.getFiles);

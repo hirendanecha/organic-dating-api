@@ -410,4 +410,40 @@ Community.getEmphasisAndArea = async function () {
   return { emphasis, area };
 };
 
+Community.CreateAdvertizementLink = async function (communityLinkData, result) {
+  console.log(communityLinkData);
+  db.query(
+    "INSERT INTO advertizement_Link set ?",
+    communityLinkData,
+    function (err, res) {
+      if (err) {
+        result(err, null);
+      } else {
+        result(null, res.insertId);
+      }
+    }
+  );
+};
+
+Community.editAdvertizeMentLink = async function (communityLinkData) {
+  const query = "update advertizement_Link set ? where communityId =?";
+  const values = [communityLinkData, communityLinkData.communityId];
+  const updateLink = await executeQuery(query, values);
+  return updateLink;
+};
+
+Community.getLink = function (id, result) {
+  db.query(
+    "select * from advertizement_Link where communityId=?",
+    id,
+    function (err, res) {
+      if (err) {
+        result(err, null);
+      } else {
+        result(null, res);
+      }
+    }
+  );
+};
+
 module.exports = Community;
