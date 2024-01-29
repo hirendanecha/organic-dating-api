@@ -140,7 +140,7 @@ exports.communityApproveEmail = async (profileId, isApprove) => {
     let redirectUrl = `${environment.FRONTEND_URL}`;
     const mailObj = {
       email: userData[0].Email,
-      subject: "Freedom notification",
+      subject: "Dating notification",
       root: "../email-templates/notification.ejs",
       templateData: { name: name, msg: msg, url: redirectUrl },
     };
