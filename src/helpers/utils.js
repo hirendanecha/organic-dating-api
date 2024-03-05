@@ -56,6 +56,7 @@ exports.registrationMail = async (userData, userId) => {
     templateData: { name: name, url: registerUrl },
   };
 
+  console.log(mailObj);
   await email.sendMail(mailObj);
   return;
 };
