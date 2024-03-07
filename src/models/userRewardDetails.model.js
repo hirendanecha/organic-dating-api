@@ -1,5 +1,5 @@
 const { executeQuery } = require("../helpers/utils");
-require("../common/common")();
+const common = require("../common/common");
 
 var UserRewardDetails = function (reward) {
   this.ID = reward.ID;
@@ -11,12 +11,20 @@ var UserRewardDetails = function (reward) {
 
 UserRewardDetails.create = async (reqBody) => {
   return await executeQuery("INSERT INTO userrewarddetails set ?", reqBody);
-}
+};
 
 UserRewardDetails.getCountByProfileId = async (profileId) => {
   const currentDate = new Date();
-  const thisMonthFirstDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const nextMonthFirstDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  const thisMonthFirstDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const nextMonthFirstDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    1
+  );
   const thisMonthLastDate = new Date(nextMonthFirstDate - 1);
 
   const countQueryValues = [profileId, thisMonthFirstDate, thisMonthLastDate];
@@ -28,7 +36,7 @@ UserRewardDetails.getCountByProfileId = async (profileId) => {
   const allCounts = await executeQuery(allCountQuery, countQueryValues);
 
   return {
-    monthly: monthlyCounts?.[0]?.json || {}, 
+    monthly: monthlyCounts?.[0]?.json || {},
     all: allCounts?.[0]?.json || {},
   };
 };

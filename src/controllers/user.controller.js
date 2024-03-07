@@ -1,25 +1,26 @@
 "use strict";
 
 const User = require("../models/user.model");
+const Profile = require("../models/profile.model");
 const utils = require("../helpers/utils");
 const environments = require("../environments/environment");
 const jwt = require("jsonwebtoken");
 const authorize = require("../middleware/authorize");
-
 const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 const { Encrypt } = require("../helpers/cryptography");
+const common = require("../common/common");
 
 exports.login = async function (req, res) {
   console.log("jkfhguysdhfgbdf");
   const { email, password } = req.body;
-  const user = await User.findByUsernameAndEmail(email);
-  // console.log(user);
+  const user = await User.findByEmail(email);
+  console.log(user);
   if (user) {
     const encryptedPassword = Encrypt(password);
-    const isMatch = encryptedPassword === user.Password;
+    const isMatch = encryptedPassword === user.password;
     console.log(isMatch);
     if (isMatch) {
-      User.login(email, user.Id, function (err, token) {
+      User.login(email, user.id, function (err, token) {
         if (err) {
           console.log(err);
           if (err?.errorCode) {
@@ -46,34 +47,6 @@ exports.login = async function (req, res) {
         message: "Password is incorrect!",
       });
     }
-    // bcrypt.compare(password, user.Password, (error, isMatch) => {
-    //   if (error) {
-    //     console.log(error);
-    //     return res.status(400).send({ error: true, message: error });
-    //   }
-    //   console.log(isMatch);
-    //   if (isMatch) {
-    //     User.login(email, user.Id, function (err, token) {
-    //       if (err) {
-    //         console.log(err);
-    //         if (err?.errorCode) {
-    //           return res.status(400).send({
-    //             error: true,
-    //             message: err?.message,
-    //             errorCode: err?.errorCode,
-    //           });
-    //         }
-    //         return res.status(400).send({ error: true, message: err });
-    //       } else {
-    //         return res.json(token);
-    //       }
-    //     });
-    //   } else {
-    //     return res
-    //       .status(400)
-    //       .send({ error: true, message: "Password not matched!" });
-    //   }
-    // });
   } else {
     return res.status(400).send({
       error: true,
@@ -103,33 +76,32 @@ exports.create = async function (req, res) {
     res.status(400).send({ error: true, message: "Error in application" });
   } else {
     const user = new User({ ...req.body });
-    const oldUser = await User.findByEmail(user.Email);
-    const oldUserName = await User.findByUsername(user.Username);
-    console.log(oldUserName);
-    if (!oldUserName) {
-      if (!oldUser) {
-        // const encryptedPassword = await bcrypt.hash(user.Password, 10);
-        const encryptedPassword = Encrypt(user.Password);
-        user.Password = encryptedPassword;
-        User.create(user, async function (err, user) {
+    const oldUser = await User.findByEmail(user.email);
+    if (!oldUser) {
+      const encryptedPassword = Encrypt(user.password);
+      user.password = encryptedPassword;
+      User.create(user, async function (err, userId) {
+        if (err) return utils.send500(res, err);
+        user["id"] = userId;
+        await utils.registrationMail(user);
+        const data = {
+          userId: user.id,
+        };
+        Profile.create(data, async function (err, profileId) {
           if (err) return utils.send500(res, err);
-          await utils.registrationMail({ ...req.body }, user);
+          data["profileId"] = profileId;
+          console.log(data);
           return res.json({
             error: false,
             message: "Data saved successfully",
-            data: user,
+            data: data,
           });
         });
-      } else {
-        return res.status(400).send({
-          error: true,
-          message: "Email already exists, please enter a different email",
-        });
-      }
+      });
     } else {
       return res.status(400).send({
         error: true,
-        message: "Username already exists, please enter a different username",
+        message: "Email already exists, please enter a different email",
       });
     }
   }
@@ -220,52 +192,27 @@ exports.setPassword = async function (req, res) {
   } else {
     const token = req.body.token;
     const newPassword = req.body.password;
-    let jwtSecretKey = environments.JWT_SECRET_KEY;
-    const decoded = jwt.verify(token, jwtSecretKey);
-    if (decoded) {
-      const user = await User.findById(decoded.userId, res);
-      console.log("user=>", user);
-      if (user) {
-        const encryptedPassword = Encrypt(newPassword);
-        // const encryptedPassword = await bcrypt.hash(newPassword, 10);
-        User.setPassword(decoded.userId, encryptedPassword);
-        res.json({ error: false, message: "success" });
-      }
+    const decoded = jwt.verify(token, environments.JWT_SECRET_KEY);
+    if (decoded.user === req.user) {
+      // const user = await User.findById(decoded.user.id, res);
+      // console.log("user=>", user);
+      // if (user) {
+      const encryptedPassword = Encrypt(newPassword);
+      User.setPassword(decoded.user.id, encryptedPassword);
+      res.json({ error: false, message: "password update successfully" });
+      // }
     } else {
-      res.json({ error: true, message: "Error occurred" });
+      return res.status(401).json({ message: "Unauthorized token" });
     }
   }
 };
-
-// exports.setPassword = async function (req, res) {
-//   if (Object.keys(req.body).length === 0) {
-//     res.status(400).send({ error: true, message: "Error in application" });
-//   } else {
-//     const email = req.body.email;
-//     const newPassword = req.body.password;
-//     const encryptedPassword = await bcrypt.hash(newPassword, 10);
-//     console.log(email, newPassword, encryptedPassword);
-//     // newPassword = encryptedPassword;
-//     // let jwtSecretKey = environments.JWT_SECRET_KEY;
-//     // const decoded = jwt.verify(token, jwtSecretKey);
-//     if (email) {
-//       User.setPassword(email, encryptedPassword);
-//       res.json({
-//         error: false,
-//         message: "password update successfully, please login",
-//       });
-//     } else {
-//       res.json({ error: true, message: "Error occurred" });
-//     }
-//   }
-// };
 
 exports.forgotPassword = async function (req, res) {
   if (Object.keys(req.body).length === 0) {
     res.status(400).send({ error: true, message: "Error in application" });
   } else {
     const email = req.body.email;
-    const user = await User.findByUsernameAndEmail(email);
+    const user = await User.findByEmail(email);
     if (user) {
       const data = await utils.forgotPasswordMail(user);
       if (data.messageId) {
@@ -433,7 +380,8 @@ exports.verification = function (req, res) {
     if (err) {
       if (err?.name === "TokenExpiredError" && data?.userId) {
         return res.redirect(
-          `${environments.FRONTEND_URL
+          `${
+            environments.FRONTEND_URL
           }/user/verification-expired?user=${encodeURIComponent(data.email)}`
         );
       }
@@ -443,11 +391,11 @@ exports.verification = function (req, res) {
     // if (data.IsAdmin === "Y") {
     //   return res.redirect(`${environments.ADMIN_URL}/auth/partner-login`);
     // }
-
-    const token = await generateJwtToken(data);
+    console.log(data);
+    const token = await common.generateJwtToken(data);
     console.log(token);
     return res.redirect(
-      `${environments.FRONTEND_URL}/healing-registration?token=${token}`
+      `${environments.FRONTEND_URL}/on-boarding?token=${token}`
     );
   });
 };

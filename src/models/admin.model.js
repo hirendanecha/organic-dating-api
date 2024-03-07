@@ -1,6 +1,6 @@
 "use strict";
 var db = require("../../config/db.config");
-require("../common/common")();
+const common = require("../common/common");
 
 var Admin = function () {};
 
@@ -22,7 +22,7 @@ Admin.login = function (username, password, result) {
         } else {
           console.log("Login Data");
           console.log(admin);
-          const token = await generateJwtToken(res[0]);
+          const token = await common.generateJwtToken(res[0]);
           result(null, {
             user_id: admin.user_id,
             user_data: admin,

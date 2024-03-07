@@ -1,6 +1,5 @@
 "use strict";
 var db = require("../../config/db.config");
-require("../common/common")();
 const { executeQuery, channelNotificationEmail } = require("../helpers/utils");
 
 var featuredChannels = function (data) {

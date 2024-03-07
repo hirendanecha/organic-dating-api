@@ -4,7 +4,7 @@ const environments = require("../environments/environment");
 const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 const User = require("../models/user.model");
 const { query } = require("../../config/db.config");
-
+const moment = require("moment");
 exports.create = function (req, res) {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
     res.status(400).send({ error: true, message: "Error in application" });
@@ -22,22 +22,26 @@ exports.create = function (req, res) {
   }
 };
 
-exports.FindProfieById = async function (req, res) {
-  if (req.params.id) {
-    const id = req.params.id;
-    console.log(id);
-    const profile = await Profile.FindById(id);
-    if (!profile) {
-      return utils.send500({ error: true, message: "not found" });
-    } else {
-      return res.json({ data: profile, error: false });
+exports.FindProfileById = async function (req, res) {
+  try {
+    if (req.params.id) {
+      const id = req.params.id;
+      console.log(id);
+      const profile = await Profile.FindById(id);
+      if (!profile) {
+        return utils.send500({ error: true, message: "not found" });
+      } else {
+        return res.json({ data: profile, error: false });
+      }
+      // Profile.FindById(id, async function   (err, profile) {
+      //   if (err) {
+      //     console.log(err);
+      //   } else {
+      //   }
+      // });
     }
-    // Profile.FindById(id, async function   (err, profile) {
-    //   if (err) {
-    //     console.log(err);
-    //   } else {
-    //   }
-    // });
+  } catch (error) {
+    return res.json({ data: error, error: true });
   }
 };
 
@@ -63,34 +67,32 @@ exports.updateProfile = async function (req, res) {
     const profileId = req.params.id;
     const reqBody = req.body;
     const profile = new Profile({ ...reqBody });
-    const existingUsername = req.user.username;
-    const isOccupied = await getUsername(reqBody.Username, existingUsername);
+    if (req.body.userId === req.user.id) {
+      console.log("profile", profile);
+      // if (req.body.id) {
+      //   const updateUserData = {
+      //     Username: reqBody?.Username,
+      //     FirstName: reqBody?.FirstName,
+      //     LastName: reqBody?.LastName,
+      //     Address: reqBody?.Address,
+      //     Zip: reqBody?.Zip,
+      //     City: reqBody?.City,
+      //     State: reqBody?.State,
+      //     Country: reqBody?.Country,
+      //   };
 
-    console.log(isOccupied);
-    if (isOccupied.length) {
-      return res
-        .status(400)
-        .json({ error: true, message: "Username is already exist" });
-    }
-
-    if (req.body.Id === req.user.id) {
-      if (req.body.UserID) {
-        const updateUserData = {
-          Username: reqBody?.Username,
-          FirstName: reqBody?.FirstName,
-          LastName: reqBody?.LastName,
-          Address: reqBody?.Address,
-          Zip: reqBody?.Zip,
-          City: reqBody?.City,
-          State: reqBody?.State,
-          Country: reqBody?.Country,
+      //   User.update(req.body.UserID, updateUserData, (err, result) => {
+      //     if (err) return utils.send500(res, err);
+      //   });
+      // }
+      if (req.body.imageUrl) {
+        const data = {
+          profileId: profileId,
+          imageUrl: req.body.imageUrl,
         };
-
-        User.update(req.body.UserID, updateUserData, (err, result) => {
-          if (err) return utils.send500(res, err);
-        });
+        await Profile.images(data);
       }
-
+      profile.updatedDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
       Profile.update(profileId, profile, async function (err, profile) {
         if (err) return utils.send500(res, err);
         return res.json({
@@ -101,7 +103,7 @@ exports.updateProfile = async function (req, res) {
     } else {
       return res.status(401).json({ message: "Unauthorized access" });
     }
-  };
+  }
 };
 
 const getUsername = async function (username, exisingusername) {

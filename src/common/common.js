@@ -1,16 +1,16 @@
 const jwt = require("jsonwebtoken");
 const env = require("../environments/environment");
 
-module.exports = function () {
-  this.generateJwtToken = (user) => {
+exports.generateJwtToken = async (user) => {
+  try {
     const payload = {
       user: {
-        id: user.Id,
-        username: user.Username,
-        active: user.IsActive,
+        id: user.id,
+        email: user.email,
       },
     };
-
     return jwt.sign(payload, env.JWT_SECRET_KEY, { expiresIn: "2d" });
-  };
+  } catch (error) {
+    return error;
+  }
 };

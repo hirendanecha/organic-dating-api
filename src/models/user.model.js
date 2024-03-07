@@ -1,64 +1,55 @@
 "use strict";
 const jwt = require("jsonwebtoken");
 var db = require("../../config/db.config");
-require("../common/common")();
+const common = require("../common/common");
 const environment = require("../environments/environment");
 const { executeQuery } = require("../helpers/utils");
 
 var User = function (user) {
-  this.Email = user.Email;
-  this.Username = user.Username;
-  this.Password = user.Password;
-  this.IsActive = user.IsActive || "N";
-  this.IsAdmin = user.IsAdmin || "N";
-  this.PartnerId = user.PartnerId;
-  this.IsSuspended = user.IsSuspended || "N";
-  this.FirstName = user.FirstName;
-  this.LastName = user.LastName;
-  this.Address = user.Address;
-  this.Country = user.Country;
-  this.Zip = user.Zip;
-  this.State = user.State;
-  this.City = user.City;
+  this.email = user.email;
+  this.password = user.password;
+  this.isActive = user.isActive || "N";
+  this.isAdmin = user.isAdmin || "N";
+  this.gender = user.gender;
+  this.birthDate = user.birthDate;
 };
 
 User.login = function (email, Id, result) {
   db.query(
-    `SELECT u.Id,
-            u.Email,
-            u.Username,
+    `SELECT u.id,
+            u.email,
             u.IsActive,
-            u.DateCreation,
-            u.IsAdmin,
-            u.FirstName,
-            u.LastName,
-            u.Address,
-            u.Country,
-            u.City,
-            u.State,
-            u.Zip,
-            u.IsSuspended,
-            u.AccountType,
-            p.ID as profileId,
-            p.CoverPicName,
-            p.ProfilePicName,
-            p.MobileNo,
-            p.MediaApproved,
-            p.ChannelType,
-            p.DefaultUniqueLink,
-            p.UniqueLink,
-            p.AccountType,
-            cm.communityId
-     FROM users as u left join profile as p on p.UserID = u.Id AND p.AccountType in ('I','M') left join communityMembers as cm on cm.profileId = p.ID WHERE u.Email = ? OR u.Username = ? AND u.Id = ?`,
-    [email, email, Id],
+            u.createdDate,
+            u.isAdmin,
+            p.id as profileId,
+            p.userName,
+            p.country,
+            p.zip,
+            p.state,
+            p.city,
+            p.isVaccinated,
+            p.isFluShot,
+            p.haveChild,
+            p.education,
+            p.ethnicity,
+            p.height,
+            p.religion,
+            p.isSmoke,
+            p.relationshipType,
+            p.relationshipHistory,
+            p.bodyType,
+            p.idealDate,
+            p.createdDate,
+            p.updatedDate
+     FROM users as u left join profile as p on p.userId = u.id WHERE u.email = ? AND u.id = ?`,
+    [email, Id],
     async function (err, res) {
       if (err) {
         console.log("error login", err);
         return result(err, null);
       } else {
         const user = res[0];
-        console.log(user, "user===>");
-        if (user?.IsActive === "N") {
+        if (user?.isActive === "N") {
           return result(
             {
               message:
@@ -68,16 +59,6 @@ User.login = function (email, Id, result) {
             null
           );
         }
-        if (user?.IsSuspended === "Y") {
-          return result(
-            {
-              message: "This user has been suspended by admin",
-              errorCode: "not_verified",
-            },
-            null
-          );
-        }
-
         if (!user) {
           return result(
             {
@@ -87,15 +68,8 @@ User.login = function (email, Id, result) {
             null
           );
         } else {
-          const token = await generateJwtToken(res[0]);
-          const query =
-            "select c.channelId from channelAdmins as c left join profile as p on p.ID = c.profileId where c.profileId = p.ID and p.UserID = ?;";
-          const value = [Id];
-          const channelId = await executeQuery(query, value);
-          console.log("channelId", channelId);
-          user.channelId = channelId[0]?.channelId;
+          const token = await common.generateJwtToken(res[0]);
           return result(null, {
-            userId: user.Id,
             user: user,
             accessToken: token,
           });
@@ -104,6 +78,7 @@ User.login = function (email, Id, result) {
     }
   );
 };
+
 User.create = function (userData, result) {
   db.query("INSERT INTO users set ?", userData, function (err, res) {
     if (err) {
@@ -117,22 +92,47 @@ User.create = function (userData, result) {
 };
 
 User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
-  let whereCondition = `u.IsAdmin != 'Y' ${
-    search ? `AND u.Username LIKE '%${search}%'` : ""
+  let whereCondition = `u.isAdmin = 'N' ${
+    search ? `AND p.userName LIKE '%${search}%'` : ""
   }`;
 
   if (startDate && endDate) {
-    whereCondition += `AND u.DateCreation >= '${startDate}' AND u.DateCreation <= '${endDate}'`;
+    whereCondition += `AND u.createdDate >= '${startDate}' AND u.createdDate <= '${endDate}'`;
   } else if (startDate) {
-    whereCondition += `AND u.DateCreation >= '${startDate}'`;
+    whereCondition += `AND u.createdDate >= '${startDate}'`;
   } else if (endDate) {
-    whereCondition += `AND u.DateCreation <= '${endDate}'`;
+    whereCondition += `AND u.createdDate <= '${endDate}'`;
   }
   const searchCount = await executeQuery(
-    `SELECT count(Id) as count FROM users as u WHERE ${whereCondition}`
+    `SELECT count(id) as count FROM users as u WHERE ${whereCondition}`
   );
   const searchData = await executeQuery(
-    `SELECT u.Id, u.Email, u.Username, u.IsActive, u.DateCreation, u.IsAdmin, u.FirstName, u.LastName, u.Address, u.Country, u.City, u.State, u.Zip, u.AccountType, u.IsSuspended,p.MobileNo,p.ProfilePicName,p.ID as profileId,p.MediaApproved FROM users as u left join profile as p on p.UserID = u.Id  WHERE ${whereCondition} order by DateCreation desc limit ? offset ?`,
+    `SELECT p.id as profileId,
+    p.userName,
+    p.userId,
+    p.city,
+    p.state,
+    p.zip,
+    p.country,
+    p.createdDate,
+    p.updatedDate,
+    p.isVaccinated,
+    p.isFluShot,
+    p.haveChild,
+    p.education,
+    p.ethnicity,
+    p.height,
+    p.religion,
+    p.isSmoke,
+    p.relationshipType,
+    p.relationshipHistory,
+    p.bodyType,
+    p.idealDate,
+    u.email,
+    u.gender,
+    u.birthDate,
+    u.isActive
+    from profile as p left join users as u on u.id = p.userId WHERE ${whereCondition} order by p.createdDate desc limit ? offset ?`,
     [limit, offset]
   );
 
@@ -175,7 +175,7 @@ User.findByUsernameAndEmail = async function (email) {
 
 User.findByEmail = async function (email) {
   console.log(email);
-  const query = `SELECT Username from users WHERE Email = ?`;
+  const query = `SELECT * from users WHERE email = ?`;
   const values = [email];
   const user = await executeQuery(query, values);
   return user[0];
@@ -289,7 +289,7 @@ User.adminLogin = function (email, result) {
         } else {
           console.log("Login Data");
           console.log(user);
-          const token = await generateJwtToken(res[0]);
+          const token = await common.generateJwtToken(res[0]);
           return result(null, {
             userId: user.Id,
             user: user,
@@ -303,7 +303,7 @@ User.adminLogin = function (email, result) {
 
 User.changeStatus = function (userId, status, result) {
   db.query(
-    "UPDATE users SET IsActive = ? WHERE Id= ?",
+    "UPDATE users SET isActive = ? WHERE id= ?",
     [status, userId],
     function (err, res) {
       if (err) {
@@ -432,12 +432,13 @@ User.verification = function (token, result) {
       return result(err, decodedToken);
     }
     try {
+      console.log("decode user", decoded);
       const updateQuery = await executeQuery(
-        "UPDATE users SET IsActive ='Y' WHERE Id = ?",
-        [decoded.userId]
+        "UPDATE users SET isActive ='Y' WHERE id = ?",
+        [decoded.user.id]
       );
-      const fetchUser = await executeQuery("select * from users where Id = ?", [
-        decoded.userId,
+      const fetchUser = await executeQuery("select * from users where id = ?", [
+        decoded.user.id,
       ]);
       console.log("fetchUser", updateQuery, fetchUser);
       return result(null, fetchUser[0]);
@@ -464,7 +465,7 @@ User.resendVerification = async function (email, result) {
 };
 
 User.setPassword = async function (user_id, password) {
-  const query = `UPDATE users SET Password=? WHERE Id=?`;
+  const query = `UPDATE users SET password=? WHERE id=?`;
   const values = [password, user_id];
   const user = await executeQuery(query, values);
   return user;

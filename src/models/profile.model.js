@@ -1,29 +1,30 @@
 "use strict";
 var db = require("../../config/db.config");
-require("../common/common")();
+const common = require("../common/common");
 const environment = require("../environments/environment");
 const { executeQuery } = require("../helpers/utils");
 
 var Profile = function (profile) {
-  this.UserName = profile.Username;
-  this.FirstName = profile.FirstName;
-  this.LastName = profile.LastName;
-  this.Address = profile.Address;
-  this.Country = profile.Country;
-  this.City = profile.City;
-  this.County = profile.County;
-  this.State = profile.State;
-  this.Zip = profile.Zip;
-  this.UserID = profile.UserID;
-  this.DateofBirth = profile.DateofBirth;
-  this.Gender = profile.Gender;
-  this.MobileNo = profile.MobileNo;
-  this.AccountType = profile?.AccountType || "I";
-  this.Business_NP_TypeID = profile.Business_NP_TypeID || 0;
-  this.CoverPicName = profile.CoverPicName;
-  this.ProfilePicName = profile.ProfilePicName;
-  this.IsActivated = profile.IsActive;
-  this.CreatedOn = new Date();
+  this.userId = profile.userId;
+  this.userName = profile.userName;
+  this.country = profile.country;
+  this.zip = profile.zip;
+  this.state = profile.state;
+  this.city = profile.city;
+  this.isVaccinated = profile.isVaccinated;
+  this.isFluShot = profile.isFluShot;
+  this.haveChild = profile.haveChild;
+  this.education = profile.education;
+  this.ethnicity = profile.ethnicity;
+  this.height = profile.height;
+  this.religion = profile.religion;
+  this.isSmoke = profile.isSmoke;
+  this.relationshipType = profile.relationshipType;
+  this.relationshipHistory = profile.relationshipHistory;
+  this.bodyType = profile.bodyType;
+  this.idealDate = profile.idealDate;
+  this.createdDate = profile.createdDate;
+  this.updatedDate = profile.updatedDate;
 };
 
 Profile.create = function (profileData, result) {
@@ -39,77 +40,44 @@ Profile.create = function (profileData, result) {
 };
 
 Profile.FindById = async function (profileId) {
-  // db.query(
-  //   `SELECT ID as Id,
-  //           FirstName,
-  //           LastName,
-  //           UserID,
-  //           MobileNo,
-  //           Gender,
-  //           DateofBirth,
-  //           Address,
-  //           City,
-  //           State,
-  //           Zip,
-  //           Country,
-  //           Business_NP_TypeID,
-  //           CoverPicName,
-  //           IsActivated,
-  //           Username,
-  //           ProfilePicName,
-  //           EmailVerified,
-  //           CreatedOn,
-  //           AccountType,
-  //           MediaApproved,
-  //           County
-  //   FROM profile WHERE ID=? `,
-  //   profileId,
-  //   function (err, res) {
-  //     if (err) {
-  //       console.log(err);
-  //       result(err, null);
-  //     } else {
-  //       result(null, res);
-  //     }
-  //   }
-  // );
-  const query = `SELECT ID as profileId,
-    FirstName,
-    LastName,
-    UserID as Id,
-    MobileNo,
-    Gender,
-    DateofBirth,
-    Address,
-    City,
-    State,
-    Zip,
-    Country,
-    Business_NP_TypeID,
-    CoverPicName,
-    IsActivated,
-    Username,
-    ProfilePicName,
-    EmailVerified,
-    CreatedOn,
-    AccountType,
-    MediaApproved,
-    County
-  FROM profile WHERE ID=?`;
+  const query = `SELECT p.id as profileId,
+    p.userName,
+    p.userId,
+    u.email,
+    u.gender,
+    u.birthDate,
+    u.isActive,
+    p.city,
+    p.state,
+    p.zip,
+    p.country,
+    p.createdDate,
+    p.updatedDate,
+    p.isVaccinated,
+    p.isFluShot,
+    p.haveChild,
+    p.education,
+    p.ethnicity,
+    p.height,
+    p.religion,
+    p.isSmoke,
+    p.relationshipType,
+    p.relationshipHistory,
+    p.bodyType,
+    p.idealDate
+  FROM profile as p left join users as u on u.id = p.userId WHERE p.id=?`;
   const values = profileId;
-  const profile = await executeQuery(query, values);
-  const query1 =
-    "select c.channelId from channelAdmins as c left join profile as p on p.ID = c.profileId where c.profileId = p.ID and p.UserID = ?;";
-  const value1 = [profile[0].Id];
-  const channelId = await executeQuery(query1, value1);
-  console.log("profile===>", profile, channelId);
-  profile[0].channelId = channelId[0]?.channelId;
+  const [profile] = await executeQuery(query, values);
+  const query1 = "select imageUrl,id from profilePictures where profileId = ?;";
+  const value1 = [profile.profileId];
+  const profilePictures = await executeQuery(query1, value1);
+  profile["profilePictures"] = profilePictures;
   return profile;
 };
 
 Profile.update = function (profileId, profileData, result) {
   db.query(
-    "UPDATE profile SET ? WHERE ID=?",
+    "UPDATE profile SET ? WHERE id=?",
     [profileData, profileId],
     function (err, res) {
       if (err) {
@@ -280,6 +248,17 @@ Profile.getGroupFileResourcesById = async (id) => {
   );
 
   return posts || [];
+};
+
+Profile.images = async (data) => {
+  try {
+    const query = "insert into profilePictures set ?";
+    const values = [data];
+    const profilePic = await executeQuery(query, values);
+    return profilePic.insertId;
+  } catch (error) {
+    return error;
+  }
 };
 
 module.exports = Profile;

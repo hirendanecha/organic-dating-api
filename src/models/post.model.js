@@ -1,5 +1,5 @@
 var db = require("../../config/db.config");
-require("../common/common")();
+const common = require("../common/common");
 const { getPagination, getPaginationData } = require("../helpers/fn");
 const { executeQuery } = require("../helpers/utils");
 const { notificationMail } = require("../helpers/utils");
@@ -251,7 +251,7 @@ Post.getPostComments = async function (profileId, postId) {
     const values = [profileId];
     const replyCommnetsList = await executeQuery(query, values);
     const countQuery = `select count(id) as count from comments where postId = ${postId} `;
-    const [{count}] = await executeQuery(countQuery);
+    const [{ count }] = await executeQuery(countQuery);
     console.log(count, "comments count");
 
     return {
