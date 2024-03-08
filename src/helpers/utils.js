@@ -49,7 +49,7 @@ exports.registrationMail = async (userData) => {
       email: userData.email,
       subject: "Account Activation link",
       root: "../email-templates/registration.ejs",
-      templateData: { url: registerUrl },
+      templateData: { url: registerUrl, name: userData.userName },
     };
 
     console.log(mailObj);

@@ -67,8 +67,8 @@ exports.updateProfile = async function (req, res) {
     const profileId = req.params.id;
     const reqBody = req.body;
     const profile = new Profile({ ...reqBody });
+    console.log("profile", req.user.id, req.body.userId);
     if (req.body.userId === req.user.id) {
-      console.log("profile", profile);
       // if (req.body.id) {
       //   const updateUserData = {
       //     Username: reqBody?.Username,

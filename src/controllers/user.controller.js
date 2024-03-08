@@ -83,9 +83,11 @@ exports.create = async function (req, res) {
       User.create(user, async function (err, userId) {
         if (err) return utils.send500(res, err);
         user["id"] = userId;
+        user["userName"] = req.body?.userName;
         await utils.registrationMail(user);
         const data = {
           userId: user.id,
+          userName: req.body.userName,
         };
         Profile.create(data, async function (err, profileId) {
           if (err) return utils.send500(res, err);
