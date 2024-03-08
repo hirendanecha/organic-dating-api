@@ -303,7 +303,7 @@ exports.delete = function (req, res) {
 exports.adminLogin = async function (req, res) {
   console.log("jkfhguysdhfgbdf");
   const { email, password } = req.body;
-  const user = await User.findByUsernameAndEmail(email);
+  const user = await User.findByEmail(email);
   console.log(user);
   if (user) {
     const encryptedPassword = Encrypt(password);

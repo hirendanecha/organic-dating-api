@@ -18,7 +18,7 @@ User.login = function (email, Id, result) {
   db.query(
     `SELECT u.id,
             u.email,
-            u.IsActive,
+            u.isActive,
             u.createdDate,
             u.isAdmin,
             p.id as profileId,
@@ -254,21 +254,32 @@ User.changeAccountType = function (userId, type, result) {
 
 User.adminLogin = function (email, result) {
   db.query(
-    `SELECT Id,
-            Email,
-            Username,
-            IsActive,
-            DateCreation,
-            IsAdmin,
-            FirstName,
-            LastName,
-            Address,
-            Country,
-            City,
-            State,
-            Zip,
-            AccountType
-     FROM users WHERE Email = ?`,
+    `SELECT u.id,
+    u.email,
+    u.isActive,
+    u.createdDate,
+    u.isAdmin,
+    p.id as profileId,
+    p.userName,
+    p.country,
+    p.zip,
+    p.state,
+    p.city,
+    p.isVaccinated,
+    p.isFluShot,
+    p.haveChild,
+    p.education,
+    p.ethnicity,
+    p.height,
+    p.religion,
+    p.isSmoke,
+    p.relationshipType,
+    p.relationshipHistory,
+    p.bodyType,
+    p.idealDate,
+    p.createdDate,
+    p.updatedDate
+FROM users as u left join profile as p on p.userId = u.id WHERE u.email = ?`,
     email,
     async function (err, res) {
       if (err) {
@@ -278,7 +289,7 @@ User.adminLogin = function (email, result) {
         const user = res[0];
         // console.log(user);
 
-        if (user?.IsAdmin === "N") {
+        if (user?.isAdmin === "N") {
           return result(
             {
               message: "Invalid Email and Password. Kindly try again !!!!",
@@ -291,7 +302,7 @@ User.adminLogin = function (email, result) {
           console.log(user);
           const token = await common.generateJwtToken(res[0]);
           return result(null, {
-            userId: user.Id,
+            userId: user.id,
             user: user,
             accessToken: token,
           });
