@@ -70,8 +70,13 @@ Profile.FindById = async function (profileId) {
   const [profile] = await executeQuery(query, values);
   const query1 = "select imageUrl,id from profilePictures where profileId = ?;";
   const value1 = [profile.profileId];
+  const query2 =
+    "select ui.interestId,i.name from user_interests as ui left join interests as i on i.id = ui.interestId  where ui.profileId = ?;";
+  const value2 = [profile.profileId];
   const profilePictures = await executeQuery(query1, value1);
+  const interestList = await executeQuery(query2, value2);
   profile["profilePictures"] = profilePictures;
+  profile["interestList"] = interestList;
   return profile;
 };
 

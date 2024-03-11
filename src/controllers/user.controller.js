@@ -149,6 +149,29 @@ exports.getEmail = async function (req, res) {
   });
 };
 
+exports.getInterest = async function (req, res) {
+  try {
+    const interests = await User.getInterest();
+    return res.send({ error: false, data: interests });
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ error: true, message: "something went wrong!!" });
+  }
+};
+
+exports.addInterest = async function (req, res) {
+  try {
+    const { interestsList, profileId } = req.body;
+    const interests = await User.addInterest(interestsList, profileId);
+    return res.send({ error: false, data: interests });
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ error: true, message: "something went wrong!!" });
+  }
+};
+
 exports.getUserList = function (req, res) {
   User.getUserList(req.params.id, function (err, user) {
     if (err) return utils.send500(res, err);

@@ -387,6 +387,29 @@ User.getEmail = async function (startDate, endDate) {
   return user;
 };
 
+User.getInterest = async function () {
+  try {
+    const query = `select * from interests`;
+    const interests = await executeQuery(query);
+    return interests;
+  } catch (error) {
+    return error;
+  }
+};
+
+User.addInterest = async function (interestList, profileId) {
+  try {
+    const newData = interestList
+      .map((element) => `(${profileId}, ${element})`)
+      .join(", ");
+    const query = `insert into user_interests (profileId,interestId) values ${newData}`;
+    const interests = await executeQuery(query);
+    return interests;
+  } catch (error) {
+    return error;
+  }
+};
+
 // ------------------- Zip Data ------------------
 
 User.getZipData = function (zip, country, result) {

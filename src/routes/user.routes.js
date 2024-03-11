@@ -13,6 +13,8 @@ router.get("/states", userController.getStats);
 router.post("/login", userController.adminLogin);
 router.get("/verify-token/:token", userController.verifyToken);
 router.use(authorize.authorization);
+router.get("/get-interest", userController.getInterest);
+router.post("/add-interest", userController.addInterest);
 router.get("/profile/:id", profileController.FindProfileById);
 router.post("/", userController.findAll);
 router.get("/get", userController.getAll);
