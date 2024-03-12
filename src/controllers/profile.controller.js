@@ -211,3 +211,56 @@ exports.getGroupFileResourcesById = async function (req, res) {
     return utils.send500(res, error);
   }
 };
+
+exports.getProfiles = async function (req, res) {
+  try {
+    const { page, limit } = req.query;
+    const offset = page > 0 ? (page - 1) * limit : 0;
+    const profiles = await Profile.getProfiles(limit, offset);
+    if (profiles.length) {
+      return res.send({ error: false, data: profiles });
+    } else {
+      return res.send({ error: false, data: [] });
+    }
+  } catch (error) {
+    console.log("error : ", error);
+    return utils.send500(res, error);
+  }
+};
+
+exports.getProfilePictures = async function (req, res) {
+  try {
+    const { page, limit } = req.query;
+    const offset = page > 0 ? (page - 1) * limit : 0;
+    const profilePictures = await Profile.getProfilePictures(+limit, +offset);
+    if (profilePictures.length) {
+      return res.send({ error: false, data: profilePictures });
+    } else {
+      return res.send({ error: false, data: [] });
+    }
+  } catch (error) {
+    console.log("error : ", error);
+    return utils.send500(res, error);
+  }
+};
+
+exports.addPictures = async function (req, res) {
+  try {
+    const data = req.body;
+    const id = await Profile.images(data);
+    return res.send({ error: false, message: "image uploaded successfully" });
+  } catch (error) {
+    return utils.send500(res, error);
+  }
+};
+
+exports.updatePicture = async function (req, res) {
+  try {
+    const data = req.body;
+    const id = req.params.id;
+    const img = await Profile.updateImages(data, id);
+    return res.send({ error: false, message: "image updated successfully" });
+  } catch (error) {
+    return utils.send500(res, error);
+  }
+};

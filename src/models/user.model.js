@@ -402,9 +402,15 @@ User.addInterest = async function (interestList, profileId) {
     const newData = interestList
       .map((element) => `(${profileId}, ${element})`)
       .join(", ");
-    const query = `insert into user_interests (profileId,interestId) values ${newData}`;
-    const interests = await executeQuery(query);
-    return interests;
+    console.log(newData);
+    const query = `select interestId from user_interests where profileId = ${profileId} and interestId in (${interestList}) `;
+    const oldData = await executeQuery(query);
+    console.log("oldData", oldData);
+    if (!oldData.length) {
+      const query = `insert into user_interests (profileId,interestId) values ${newData}`;
+      const interests = await executeQuery(query);
+      return interests;
+    }
   } catch (error) {
     return error;
   }

@@ -266,4 +266,80 @@ Profile.images = async (data) => {
   }
 };
 
+Profile.updateImages = async (data, id) => {
+  try {
+    const query =
+      "update profilePictures set imageUrl = ?,updatedDate = ? where id = ?";
+    const values = [data.imageUrl, data.updatedDate, id];
+    const profilePic = await executeQuery(query, values);
+    return profilePic.insertId;
+  } catch (error) {
+    return error;
+  }
+};
+
+Profile.getProfiles = async (limit, offset) => {
+  let query = `SELECT p.id as profileId,
+    p.userName,
+    p.userId,
+    u.email,
+    u.gender,
+    u.birthDate,
+    u.isActive,
+    p.city,
+    p.state,
+    p.zip,
+    p.country,
+    p.createdDate,
+    p.updatedDate,
+    p.isVaccinated,
+    p.isFluShot,
+    p.haveChild,
+    p.education,
+    p.ethnicity,
+    p.height,
+    p.religion,
+    p.isSmoke,
+    p.relationshipType,
+    p.relationshipHistory,
+    p.bodyType,
+    p.idealDate
+  FROM profile as p left join users as u on u.id = p.userId ORDER BY p.id DESC`;
+  if (limit > 0 && offset >= 0) {
+    query += ` LIMIT ${limit} OFFSET ${offset}`;
+  }
+  let profiles = await executeQuery(query);
+  const promises = profiles.map(async (element) => {
+    const query1 =
+      "select imageUrl,id from profilePictures where profileId = ?;";
+    const value1 = [element.profileId];
+    const query2 =
+      "select ui.interestId,i.name from user_interests as ui left join interests as i on i.id = ui.interestId  where ui.profileId = ?;";
+    const value2 = [element.profileId];
+    const [profilePictures, interestList] = await Promise.all([
+      executeQuery(query1, value1),
+      executeQuery(query2, value2),
+    ]);
+    element["profilePictures"] = profilePictures;
+    element["interestList"] = interestList;
+    return element;
+  });
+
+  await Promise.all(promises);
+  return profiles || [];
+};
+
+Profile.getProfilePictures = async (limit, offset) => {
+  try {
+    let query = `select pp.id,pp.profileId,pp.imageUrl,p.userName from profilePictures as pp left join profile as p on p.id = pp.profileId order by pp.id DESC`;
+    if (limit > 0 && offset >= 0) {
+      query += ` LIMIT ${limit} OFFSET ${offset}`;
+    }
+    const profilePictures = await executeQuery(query);
+    return profilePictures;
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = Profile;
