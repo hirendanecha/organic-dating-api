@@ -9,8 +9,7 @@ exports.generateJwtToken = async (user) => {
         email: user.email,
       },
     };
+
     return jwt.sign(payload, env.JWT_SECRET_KEY, { expiresIn: "2d" });
-  } catch (error) {
-    return error;
-  }
+  };
 };

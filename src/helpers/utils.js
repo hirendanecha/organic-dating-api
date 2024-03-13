@@ -62,27 +62,29 @@ exports.registrationMail = async (userData) => {
 
 exports.forgotPasswordMail = async (user) => {
   console.log(user);
-  try {
-    const payload = {
-      id: user.id,
-      email: user.email,
+  if (user) {
+    let jwtSecretKey = environment.JWT_SECRET_KEY;
+    let name = user?.Username || user?.FirstName + " " + user?.LastName;
+    const token = jwt.sign(
+      {
+        userId: user?.Id,
+      },
+      jwtSecretKey,
+      { expiresIn: "1 day" }
+    );
+
+    let forgotPasswordUrl = `${environment.FRONTEND_URL}reset-password/user?accesstoken=${token}`;
+    const mailObj = {
+      email: user?.Email,
+      subject: "Forgot password",
+      root: "../email-templates/forgot-password.ejs",
+      templateData: { name: name, url: forgotPasswordUrl },
     };
-    const token = await common.generateJwtToken(payload);
-    if (user) {
-      let forgotPasswordUrl = `${environment.FRONTEND_URL}reset-password/user?accesstoken=${token}`;
-      const mailObj = {
-        email: user?.email,
-        subject: "Forgot password",
-        root: "../email-templates/forgot-password.ejs",
-        templateData: { name: email, url: forgotPasswordUrl },
-      };
-      const emailData = await email.sendMail(mailObj);
-      return emailData;
-    } else {
-      return { error: "User not found with this email" };
-    }
-  } catch (error) {
-    return { error };
+
+    const emailData = await email.sendMail(mailObj);
+    return emailData;
+  } else {
+    return { error: "User not found with this email" };
   }
 };
 

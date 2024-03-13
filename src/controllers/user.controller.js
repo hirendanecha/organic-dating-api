@@ -217,15 +217,17 @@ exports.setPassword = async function (req, res) {
   } else {
     const token = req.body.token;
     const newPassword = req.body.password;
-    const decoded = jwt.verify(token, environments.JWT_SECRET_KEY);
-    if (decoded.user === req.user) {
-      // const user = await User.findById(decoded.user.id, res);
-      // console.log("user=>", user);
-      // if (user) {
-      const encryptedPassword = Encrypt(newPassword);
-      User.setPassword(decoded.user.id, encryptedPassword);
-      res.json({ error: false, message: "password update successfully" });
-      // }
+    let jwtSecretKey = environments.JWT_SECRET_KEY;
+    const decoded = jwt.verify(token, jwtSecretKey);
+    if (decoded) {
+      const user = await User.findById(decoded.userId, res);
+      console.log("user=>", user);
+      if (user) {
+        const encryptedPassword = Encrypt(newPassword);
+        // const encryptedPassword = await bcrypt.hash(newPassword, 10);
+        User.setPassword(decoded.userId, encryptedPassword);
+        res.json({ error: false, message: "success" });
+      }
     } else {
       return res.status(401).json({ message: "Unauthorized token" });
     }
