@@ -10,6 +10,8 @@ exports.generateJwtToken = async (user) => {
       },
     };
 
-    return jwt.sign(payload, env.JWT_SECRET_KEY, { expiresIn: "2d" });
+    return jwt.sign(payload, env.JWT_SECRET_KEY, { expiresIn: "5d" });
+  } catch (error) {
+    return error;
   };
 };
