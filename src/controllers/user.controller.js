@@ -219,12 +219,12 @@ exports.setPassword = async function (req, res) {
     const newPassword = req.body.password;
     const decoded = jwt.verify(token, environments.JWT_SECRET_KEY);
     if (decoded) {
-      const user = await User.findById(decoded.userId, res);
+      const user = await User.findById(decoded.user.id, res);
       console.log("user=>", user);
       if (user) {
         const encryptedPassword = Encrypt(newPassword);
         // const encryptedPassword = await bcrypt.hash(newPassword, 10);
-        User.setPassword(decoded.userId, encryptedPassword);
+        User.setPassword(decoded.user.id, encryptedPassword);
         res.json({ error: false, message: "success" });
       }
     } else {

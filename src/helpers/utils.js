@@ -64,14 +64,11 @@ exports.forgotPasswordMail = async (user) => {
   console.log(user);
   if (user) {
     let name = user?.Username || user?.FirstName + " " + user?.LastName;
-    const token = jwt.sign(
-      {
-        userId: user?.Id,
-      },
-      environment.JWT_SECRET_KEY,
-      { expiresIn: "1d" }
-    );
-
+    const payload = {
+      id: userData.id,
+      email: userData.email,
+    };
+    const token = await common.generateJwtToken(payload);
     let forgotPasswordUrl = `${environment.FRONTEND_URL}reset-password/user?accesstoken=${token}`;
     const mailObj = {
       email: user?.Email,
