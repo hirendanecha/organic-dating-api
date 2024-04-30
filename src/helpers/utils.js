@@ -63,15 +63,15 @@ exports.registrationMail = async (userData) => {
 exports.forgotPasswordMail = async (user) => {
   console.log(user);
   if (user) {
-    let name = user?.Username || user?.FirstName + " " + user?.LastName;
+    let name = user?.userName;
     const payload = {
-      id: userData.id,
-      email: userData.email,
+      id: user.id,
+      email: user.email,
     };
     const token = await common.generateJwtToken(payload);
     let forgotPasswordUrl = `${environment.FRONTEND_URL}reset-password/user?accesstoken=${token}`;
     const mailObj = {
-      email: user?.Email,
+      email: user?.email,
       subject: "Forgot password",
       root: "../email-templates/forgot-password.ejs",
       templateData: { name: name, url: forgotPasswordUrl },

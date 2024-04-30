@@ -143,23 +143,17 @@ User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
 };
 
 User.findById = async function (user_id) {
-  const query = `SELECT u.Id,
-  u.Email,
+  const query = `SELECT u.id,
+  u.email,
   u.IsActive,
-  u.DateCreation,
-  u.IsAdmin,
-  u.FirstName,
-  u.LastName,
-  u.Address,
-  u.Country,
-  u.City,
-  u.State,
-  u.Zip,
-  u.Username,
-  u.AccountType,
-  u.IsSuspended,
-  p.ID as profileId
-FROM users as u left join profile as p on p.UserID = u.Id WHERE u.Id = ? `;
+  u.createdDate,
+  u.isAdmin,
+  u.gender,
+  u.birthDate,
+  u.isActive,
+  p.id as profileId,
+  p.*
+FROM users as u left join profile as p on p.userId = u.id WHERE u.id = ? `;
   const values = [user_id];
   const user = await executeQuery(query, values);
   return user;
@@ -175,7 +169,7 @@ User.findByUsernameAndEmail = async function (email) {
 
 User.findByEmail = async function (email) {
   console.log(email);
-  const query = `SELECT * from users WHERE email = ?`;
+  const query = `SELECT u.*,p.userName from users as u left join profile as p on p.userId = u.Id WHERE u.email = ?`;
   const values = [email];
   const user = await executeQuery(query, values);
   return user[0];
