@@ -101,14 +101,14 @@ exports.notificationMail = async (userData) => {
 };
 
 exports.channelNotificationEmail = async (userData) => {
-  let name = userData?.Username;
+  let name = userData?.userName;
   let msg = `You have been assign in OrganicDating channel by the OrganicDating Admin.
   To access your channel, log into your OrganicDating account,click on the
   OrganicDating icon at the top of the page,then click on My Channel.`;
   let redirectUrl = `${environment.FRONTEND_URL}`;
 
   const mailObj = {
-    email: userData.Email,
+    email: userData.email,
     subject: "Dating notification",
     root: "../email-templates/notification.ejs",
     templateData: { name: name, msg: msg, url: redirectUrl },
@@ -120,13 +120,11 @@ exports.channelNotificationEmail = async (userData) => {
 
 exports.communityApproveEmail = async (profileId, isApprove) => {
   const query =
-    "select u.Email,p.FirstName,p.LastName,p.Username from users as u left join profile as p on p.UserID = u.Id where p.ID =?";
+    "select u.email,p.userName from users as u left join profile as p on p.userId = u.id where p.id =?";
   const values = [profileId];
   const userData = await this.executeQuery(query, values);
   if (userData) {
-    let name =
-      userData[0]?.Username ||
-      userData[0]?.FirstName + " " + userData[0]?.LastName;
+    let name = userData[0]?.userName;
     let msg = "";
     if (isApprove === "Y") {
       msg = `OrganicDating has approved your Connection application.`;
@@ -135,7 +133,7 @@ exports.communityApproveEmail = async (profileId, isApprove) => {
     }
     let redirectUrl = `${environment.FRONTEND_URL}`;
     const mailObj = {
-      email: userData[0].Email,
+      email: userData[0].email,
       subject: "Dating notification",
       root: "../email-templates/notification.ejs",
       templateData: { name: name, msg: msg, url: redirectUrl },
@@ -143,6 +141,23 @@ exports.communityApproveEmail = async (profileId, isApprove) => {
     await email.sendMail(mailObj);
     return;
   }
+};
+
+exports.notificationMailOnInvite = async (userData) => {
+  let name = userData?.userName;
+  let msg = userData.msg;
+  let redirectUrl = `${environment.FRONTEND_URL}profile-chats`;
+
+  const mailObj = {
+    email: userData.email,
+    subject: "OD notification",
+    root: "../email-templates/notification.ejs",
+    templateData: { name: name, msg: msg, url: redirectUrl },
+  };
+  console.log(mailObj);
+
+  await email.sendMail(mailObj);
+  return;
 };
 
 exports.executeQuery = async (query, values = []) => {
