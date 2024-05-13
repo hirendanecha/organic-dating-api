@@ -26,6 +26,13 @@ var Profile = function (profile) {
   this.profilePicName = profile.profilePicName;
   this.createdDate = profile.createdDate;
   this.updatedDate = profile.updatedDate;
+  this.matchHaveChild = profile.matchHaveChild;
+  this.matchIsVaccinated = profile.matchIsVaccinated;
+  this.matchEducation = profile.matchEducation;
+  this.matchEthnicity = profile.matchEthnicity;
+  this.matchBodyType = profile.matchBodyType;
+  this.matchReligion = profile.matchReligion;
+  this.matchIsSmoke = profile.matchIsSmoke;
 };
 
 Profile.create = function (profileData, result) {
@@ -66,7 +73,14 @@ Profile.FindById = async function (profileId) {
     p.relationshipHistory,
     p.bodyType,
     p.idealDate,
-    p.profilePicName
+    p.profilePicName,
+    p.matchIsSmoke,
+    p.matchReligion,
+    p.matchBodyType,
+    p.matchEthnicity,
+    p.matchEducation,
+    p.matchIsVaccinated,
+    p.matchHaveChild
   FROM profile as p left join users as u on u.id = p.userId WHERE p.id=?`;
   const values = profileId;
   const [profile] = await executeQuery(query, values);
