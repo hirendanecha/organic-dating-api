@@ -390,17 +390,28 @@ User.getInterest = async function () {
   }
 };
 
-User.addInterest = async function (interestList, profileId) {
+User.addInterest = async function (
+  interestList,
+  profileId,
+  removeInterestList
+) {
   try {
-    const newData = interestList
-      .map((element) => `(${profileId}, ${element})`)
-      .join(", ");
-    console.log(newData);
-    const query = `select interestId from user_interests where profileId = ${profileId} and interestId in (${interestList}) `;
-    const oldData = await executeQuery(query);
-    console.log("oldData", oldData);
-    if (!oldData.length) {
-      const query = `insert into user_interests (profileId,interestId) values ${newData}`;
+    if (interestList.length) {
+      const newData = interestList
+        .map((element) => `(${profileId}, ${element})`)
+        .join(", ");
+      console.log(newData);
+      const query = `select interestId from user_interests where profileId = ${profileId} and interestId in (${interestList}) `;
+      const oldData = await executeQuery(query);
+      console.log("oldData", oldData);
+      if (!oldData.length) {
+        const query = `insert into user_interests (profileId,interestId) values ${newData}`;
+        const interests = await executeQuery(query);
+        return interests;
+      }
+    }
+    if (removeInterestList.length) {
+      const query = `delete from user_interests where profileId = ${profileId} and interestId in (${removeInterestList})`;
       const interests = await executeQuery(query);
       return interests;
     }

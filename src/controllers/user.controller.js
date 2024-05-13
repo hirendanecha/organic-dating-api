@@ -162,8 +162,12 @@ exports.getInterest = async function (req, res) {
 
 exports.addInterest = async function (req, res) {
   try {
-    const { interestsList, profileId } = req.body;
-    const interests = await User.addInterest(interestsList, profileId);
+    const { interestsList, profileId, removeInterestList } = req.body;
+    const interests = await User.addInterest(
+      interestsList,
+      profileId,
+      removeInterestList
+    );
     return res.send({ error: false, data: interests });
   } catch (error) {
     return res
