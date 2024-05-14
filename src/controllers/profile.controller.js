@@ -116,7 +116,8 @@ const getUsername = async function (username, exisingusername) {
 
 exports.getUsersByUsername = async function (req, res) {
   const { searchText } = req.query;
-  const data = await Profile.getUsersByUsername(searchText);
+  const profileId = req.user.id;
+  const data = await Profile.getUsersByUsername(searchText, profileId);
   return res.send({
     error: false,
     data: data,

@@ -23,7 +23,7 @@ var Profile = function (profile) {
   this.relationshipHistory = profile.relationshipHistory;
   this.bodyType = profile.bodyType;
   this.idealDate = profile.idealDate;
-  this.profilePicName = profile.profilePicName;
+  this.profilePicName = profile.imageUrl;
   this.createdDate = profile.createdDate;
   this.updatedDate = profile.updatedDate;
   this.matchHaveChild = profile.matchHaveChild;
@@ -112,9 +112,9 @@ Profile.update = function (profileId, profileData, result) {
   );
 };
 
-Profile.getUsersByUsername = async function (searchText) {
+Profile.getUsersByUsername = async function (searchText, profileId) {
   if (searchText) {
-    const query = `select p.id as Id, p.userName,p.profilePicName from profile as p left join users as u on u.id = p.userId WHERE u.isAdmin='N' AND p.userName LIKE ? order by p.userName limit 500`;
+    const query = `select p.id as Id, p.userName,p.profilePicName from profile as p left join users as u on u.id = p.userId WHERE u.isAdmin='N' AND p.userName LIKE ? AND p.id not in (SELECT UnsubscribeProfileId FROM unsubscribe_profiles where ProfileId = ${profileId}) order by p.userName limit 500`;
     const values = [`${searchText}%`];
     const searchData = await executeQuery(query, values);
     return searchData;
@@ -327,7 +327,9 @@ Profile.getProfiles = async (limit, offset, id, gender) => {
     p.relationshipHistory,
     p.bodyType,
     p.idealDate
-  FROM profile as p left join users as u on u.id = p.userId where p.id != ${id} and u.gender != '${gender}' ORDER BY p.id DESC`;
+  FROM profile as p left join users as u on u.id = p.userId where p.id != ${id} and u.gender = '${
+    gender === "man" ? "woman" : "man"
+  }' and p.id not in (SELECT UnsubscribeProfileId FROM unsubscribe_profiles where ProfileId = ${id}) ORDER BY p.id DESC`;
   if (limit > 0 && offset >= 0) {
     query += ` LIMIT ${limit} OFFSET ${offset}`;
   }
@@ -354,7 +356,7 @@ Profile.getProfiles = async (limit, offset, id, gender) => {
 
 Profile.getProfilePictures = async (limit, offset, id, gender) => {
   try {
-    let query = `select pp.id,pp.profileId,pp.imageUrl,p.userName from profilePictures as pp left join profile as p on p.id = pp.profileId left join users as u on u.id = p.userId where pp.profileId != ${id} and u.gender != '${gender}' order by pp.id DESC`;
+    let query = `select pp.id,pp.profileId,pp.imageUrl,p.userName from profilePictures as pp left join profile as p on p.id = pp.profileId left join users as u on u.id = p.userId where pp.profileId != ${id} and u.gender != '${gender}' and p.id not in (SELECT UnsubscribeProfileId FROM unsubscribe_profiles where ProfileId = ${id}) order by pp.id DESC`;
     if (limit > 0 && offset >= 0) {
       query += ` LIMIT ${limit} OFFSET ${offset}`;
     }

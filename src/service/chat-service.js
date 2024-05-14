@@ -119,6 +119,7 @@ LEFT JOIN
     messages AS m ON m.roomId = r.id AND m.sentBy != ${params.profileId} AND m.isRead = 'N'
 WHERE
     (r.profileId1 = ? OR r.profileId2 = ?) AND r.isDeleted = 'N'
+    AND p.id not in (SELECT UnsubscribeProfileId FROM unsubscribe_profiles where ProfileId = ${params.profileId})
 GROUP BY
     r.id, r.profileId1, r.isAccepted,r.updatedDate, p.id, p.userName, p.profilePicName
 ORDER BY
@@ -800,6 +801,7 @@ const getGroupList = async function (params) {
             AND m.createdDate > gm.switchDate
             AND m.sentBy != ?
             WHERE gm.profileId = ?
+            and p.id not in (SELECT UnsubscribeProfileId FROM unsubscribe_profiles where ProfileId = ${params.profileId})
             GROUP BY g.id
             ORDER BY g.updatedDate DESC`;
     // LEFT JOIN readMessage AS rm ON rm.messageId = m.id
