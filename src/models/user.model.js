@@ -40,7 +40,15 @@ User.login = function (email, Id, result) {
             p.bodyType,
             p.idealDate,
             p.createdDate,
-            p.updatedDate
+            p.updatedDate,
+            p.profilePicName,
+            p.matchIsSmoke,
+            p.matchReligion,
+            p.matchBodyType,
+            p.matchEthnicity,
+            p.matchEducation,
+            p.matchIsVaccinated,
+            p.matchHaveChild
      FROM users as u left join profile as p on p.userId = u.id WHERE u.email = ? AND u.id = ?`,
     [email, Id],
     async function (err, res) {
@@ -131,7 +139,15 @@ User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
     u.email,
     u.gender,
     u.birthDate,
-    u.isActive
+    u.isActive,
+    p.profilePicName,
+    p.matchIsSmoke,
+    p.matchReligion,
+    p.matchBodyType,
+    p.matchEthnicity,
+    p.matchEducation,
+    p.matchIsVaccinated,
+    p.matchHaveChild
     from profile as p left join users as u on u.id = p.userId WHERE ${whereCondition} order by p.createdDate desc limit ? offset ?`,
     [limit, offset]
   );
