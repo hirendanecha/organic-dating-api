@@ -33,6 +33,15 @@ FavoriteProfiles.getFavoriteProfiles = async (id) => {
       "select p.* from favourite_profiles as fp left join profile as p on p.id = fp.profileId where fp.likedByProfileId = ?";
     const values = [id];
     const profiles = await executeQuery(query, values);
+    await Promise.all(
+      profiles.map(async (ele) => {
+        const query1 =
+          "select imageUrl, id from profilePictures where profileId = ?;";
+        const value1 = [ele.id];
+        const profilePictures = await executeQuery(query1, value1);
+        ele["profilePictures"] = profilePictures;
+      })
+    );
     return profiles;
   } catch (error) {
     return error;
