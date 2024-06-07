@@ -101,7 +101,9 @@ User.create = function (userData, result) {
 
 User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
   let whereCondition = `u.isAdmin = 'N' ${
-    search ? `AND p.userName LIKE '%${search}%' OR u.email LIKE '%${search}%'` : ""
+    search
+      ? `AND p.userName LIKE '%${search}%' OR u.email LIKE '%${search}%'`
+      : ""
   }`;
 
   if (startDate && endDate) {
@@ -147,7 +149,8 @@ User.findAndSearchAll = async (limit, offset, search, startDate, endDate) => {
     p.matchEthnicity,
     p.matchEducation,
     p.matchIsVaccinated,
-    p.matchHaveChild
+    p.matchHaveChild,
+    p.userStatus
     from profile as p left join users as u on u.id = p.userId WHERE ${whereCondition} order by p.createdDate desc limit ? offset ?`,
     [limit, offset]
   );
