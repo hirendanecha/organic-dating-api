@@ -33,6 +33,7 @@ var Profile = function (profile) {
   this.matchBodyType = profile.matchBodyType;
   this.matchReligion = profile.matchReligion;
   this.matchIsSmoke = profile.matchIsSmoke;
+  this.userStatus = profile.userStatus;
 };
 
 Profile.create = function (profileData, result) {
