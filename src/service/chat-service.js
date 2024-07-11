@@ -1,6 +1,7 @@
 const { executeQuery } = require("../helpers/utils");
 const { notificationMailOnInvite } = require("../helpers/utils");
 const moment = require("moment");
+const { getPagination, getCount, getPaginationData } = require("../helpers/fn");
 
 exports.getChatList = async function (params) {
   return await getChatList(params);
@@ -640,8 +641,10 @@ const startCall = async function (params) {
         notification["link"] = params?.link;
         const query = `select p.userName,p.profilePicName from profile as p where p.id = ${params?.notificationByProfileId}`;
         const [profile] = await executeQuery(query);
-        notification["userName"] = profile?.userName;
-        notification["profilePicName"] = profile?.profilePicName;
+        const group = await getGroup({ groupId: params.groupId });
+        notification["userName"] = profile?.Username;
+        notification["groupName"] = group?.groupName;
+        notification["profilePicName"] = group?.profileImage;
         return { notification };
       }
     }
@@ -728,7 +731,7 @@ const createGroups = async function (params) {
             groupId: params?.groupId,
             profileId: id,
           };
-          if (!params.isUpdate) {
+          if (params.isUpdate) {
             const memberId = await addMembers(data);
           }
           console.log("ids==>", id);
@@ -739,8 +742,8 @@ const createGroups = async function (params) {
             groupId: params?.groupId,
             msg: `${
               params?.isUpdate
-                ? "changed group details"
-                : "added you in chat group"
+                ? "added you in chat group"
+                : "changed group details"
             }`,
           });
           notifications.push(notification);
@@ -935,5 +938,57 @@ const changeUserStatus = async function (params) {
     return data;
   } catch (error) {
     return error;
+  }
+};
+
+const getMessages = async (params) => {
+  const { limit, offset } = getPagination(params.page, params.size);
+  const searchCount = await executeQuery(
+    `SELECT count(m.id) as count FROM messages as m WHERE roomId = ${params.roomId} or groupId = ${params.groupId}`
+  );
+  const searchData = await executeQuery(
+    `select m.*,p.Username,p.ProfilePicName,p.FirstName from messages as m left join profile as p on p.ID = m.sentBy where m.roomId =${params.roomId} or m.groupId = ${params.groupId} GROUP BY m.id order by m.createdDate desc limit ? offset ?`,
+    [limit, offset]
+  );
+  for (const msg of searchData) {
+    msg["parentMessage"] = await getMessageById(msg?.parentMessageId);
+    // if (msg.groupId) {
+    // }
+  }
+  console.log(searchData[0]);
+  const readBy = await getReadUser(searchData[0]);
+  console.log(readBy);
+  const messageData = getPaginationData(
+    { count: searchCount?.[0]?.count, docs: searchData },
+    params.page,
+    limit
+  );
+  messageData["readUsers"] = readBy;
+  return messageData;
+};
+
+const getMessageById = async function (id) {
+  try {
+    const query =
+      "select m.*,p.Username,p.ProfilePicName,p.FirstName from messages as m left join profile as p on p.ID = m.sentBy where m.id = ?";
+    const values = [id];
+    const [message] = await executeQuery(query, values);
+    return message;
+  } catch (error) {
+    return null;
+  }
+};
+
+const getReadUser = async function (msg) {
+  try {
+    const date = moment(msg?.createdDate)
+      .utc()
+      .local()
+      .format("YYYY-MM-DD HH:mm:ss");
+    const query = `select p.ID,p.Username,p.ProfilePicName,p.FirstName from profile as p left join groupMembers as gm on p.ID = gm.profileId where gm.groupId = ${msg.groupId} and gm.switchDate >= '${date}'`;
+    const readUsers = await executeQuery(query);
+    return readUsers;
+  } catch (error) {
+    return null;
   }
 };
