@@ -98,6 +98,10 @@ exports.changeUserStatus = async function (data) {
   return await changeUserStatus(data);
 };
 
+exports.getMessages = async function (data) {
+  return await getMessages(data);
+};
+
 const getChatList = async function (params) {
   try {
     // const query = `select r.id as roomId,count(m.id) as unReadMessage ,r.profileId1 as createdBy, r.isAccepted,p.id as profileId,p.userName,p.FirstName,p.lastName,p.profilePicName from chatRooms as r join profile as p on p.id = CASE
