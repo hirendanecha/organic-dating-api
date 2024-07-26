@@ -179,7 +179,7 @@ FROM users as u left join profile as p on p.userId = u.id WHERE u.id = ? `;
 };
 
 User.findByUsernameAndEmail = async function (email) {
-  const query = `SELECT * from users WHERE Email = ? or Username = ?`;
+  const query = `SELECT * from users WHERE Email = ? or userName = ?`;
   const values = [email, email];
   const user = await executeQuery(query, values);
   console.log(user);
@@ -195,7 +195,7 @@ User.findByEmail = async function (email) {
 };
 
 User.findByUsername = async function (username) {
-  const query = `SELECT Username from users WHERE Username = ?`;
+  const query = `SELECT userName from users WHERE userName = ?`;
   const values = [username];
   const user = await executeQuery(query, values);
   return user[0];

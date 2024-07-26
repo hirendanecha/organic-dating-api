@@ -124,7 +124,7 @@ featuredChannels.CreateSubAdmin = async function (data, result) {
   const user = await executeQuery(query);
   console.log("user", user);
   const userData = {
-    Username: user[0].userName,
+    userName: user[0].userName,
     Email: user[0].email,
   };
   await channelNotificationEmail(userData);

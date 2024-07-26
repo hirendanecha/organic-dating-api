@@ -602,7 +602,7 @@ const deleteRoom = async function (params) {
 //             notification["link"] = params?.link;
 //             const query = `select p.userName,p.FirstName,p.LastName,p.profilePicName from profile as p where p.id = ${params?.notificationByProfileId}`;
 //             const [profile] = await executeQuery(query);
-//             notification["Username"] = profile?.Username;
+//             notification["userName"] = profile?.userName;
 //             notification["profilePicName"] = profile?.profilePicName;
 //             notifications.push(notification);
 //           }
@@ -646,7 +646,7 @@ const startCall = async function (params) {
         const query = `select p.userName,p.profilePicName from profile as p where p.id = ${params?.notificationByProfileId}`;
         const [profile] = await executeQuery(query);
         const group = await getGroup({ groupId: params.groupId });
-        notification["userName"] = profile?.Username;
+        notification["userName"] = profile?.userName;
         notification["groupName"] = group?.groupName;
         notification["profilePicName"] = group?.profileImage;
         return { notification };
@@ -951,7 +951,7 @@ const getMessages = async (params) => {
     `SELECT count(m.id) as count FROM messages as m WHERE roomId = ${params.roomId} or groupId = ${params.groupId}`
   );
   const searchData = await executeQuery(
-    `select m.*,p.Username,p.ProfilePicName,p.FirstName from messages as m left join profile as p on p.ID = m.sentBy where m.roomId =${params.roomId} or m.groupId = ${params.groupId} GROUP BY m.id order by m.createdDate desc limit ? offset ?`,
+    `select m.*,p.userName,p.profilePicName from messages as m left join profile as p on p.id = m.sentBy where m.roomId =${params.roomId} or m.groupId = ${params.groupId} GROUP BY m.id order by m.createdDate desc limit ? offset ?`,
     [limit, offset]
   );
   for (const msg of searchData) {
@@ -974,7 +974,7 @@ const getMessages = async (params) => {
 const getMessageById = async function (id) {
   try {
     const query =
-      "select m.*,p.Username,p.ProfilePicName,p.FirstName from messages as m left join profile as p on p.ID = m.sentBy where m.id = ?";
+      "select m.*,p.userName,p.profilePicName from messages as m left join profile as p on p.id = m.sentBy where m.id = ?";
     const values = [id];
     const [message] = await executeQuery(query, values);
     return message;
@@ -989,7 +989,7 @@ const getReadUser = async function (msg) {
       .utc()
       .local()
       .format("YYYY-MM-DD HH:mm:ss");
-    const query = `select p.ID,p.Username,p.ProfilePicName,p.FirstName from profile as p left join groupMembers as gm on p.ID = gm.profileId where gm.groupId = ${msg.groupId} and gm.switchDate >= '${date}'`;
+    const query = `select p.id,p.userName,p.profilePicName from profile as p left join groupMembers as gm on p.id = gm.profileId where gm.groupId = ${msg.groupId} and gm.switchDate >= '${date}'`;
     const readUsers = await executeQuery(query);
     return readUsers;
   } catch (error) {

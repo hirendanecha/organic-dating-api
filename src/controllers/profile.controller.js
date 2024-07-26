@@ -71,7 +71,7 @@ exports.updateProfile = async function (req, res) {
     if (req.body.userId === req.user.id) {
       // if (req.body.id) {
       //   const updateUserData = {
-      //     Username: reqBody?.Username,
+      //     userName: reqBody?.userName,
       //     FirstName: reqBody?.FirstName,
       //     LastName: reqBody?.LastName,
       //     Address: reqBody?.Address,
@@ -111,7 +111,7 @@ exports.updateProfile = async function (req, res) {
 
 const getUsername = async function (username, exisingusername) {
   const query =
-    "select Username from users where Username = ? and Username not in (?)";
+    "select userName from users where userName = ? and userName not in (?)";
   const value = [username, exisingusername];
   const user = await utils.executeQuery(query, value);
   return user;

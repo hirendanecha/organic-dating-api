@@ -18,7 +18,7 @@ Admin.login = function (username, password, result) {
         console.log(admin);
 
         if (!admin) {
-          result("Invalid Username and Password. Kindly try again !!!!", null);
+          result("Invalid userName and Password. Kindly try again !!!!", null);
         } else {
           console.log("Login Data");
           console.log(admin);
