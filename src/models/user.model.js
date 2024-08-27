@@ -48,7 +48,10 @@ User.login = function (email, Id, result) {
             p.matchEthnicity,
             p.matchEducation,
             p.matchIsVaccinated,
-            p.matchHaveChild
+            p.matchHaveChild,
+            p.messageNotificationSound,
+            p.callNotificationSound,
+            p.tagNotificationSound
      FROM users as u left join profile as p on p.userId = u.id WHERE u.email = ? AND u.id = ?`,
     [email, Id],
     async function (err, res) {
